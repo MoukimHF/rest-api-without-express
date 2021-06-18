@@ -19,31 +19,34 @@ const server = http.createServer((req, res) => {
   req.on("end", () => {
     buffer += decoder.end();
     // Choose the handler this request should go to. If one is not found, use the not found handler!
-    var choosedHandler = typeof(router[trimmedPath]) !== 'undefined' ? router[trimmedPath] : handlers.notFound;
-    // Construst the data object to send to the handler 
+    var choosedHandler =
+      typeof router[trimmedPath] !== "undefined"
+        ? router[trimmedPath]
+        : handlers.notFound;
+    // Construst the data object to send to the handler
     var data = {
-        'trimmedPath' : trimmedPath,
-        'queryStringObject' : queryStringObject,
-        'method' : method,
-        'headers' : headers,
-        'payload' : buffer
-    }
+      trimmedPath: trimmedPath,
+      queryStringObject: queryStringObject,
+      method: method,
+      headers: headers,
+      payload: buffer,
+    };
     // Route the request to the handler specified in the router
-    choosedHandler(data,(statusCode,payload)=>{
-        // Use the status code called back by the handler, or default to 200 
-        statusCode = typeof(statusCode) == 'number' ? statusCode : 200;
-        // Use the payload called back by the handler, or default to an empty object
-        payload = typeof(payload) == 'object' ? payload : {};
+    choosedHandler(data, (statusCode, payload) => {
+      // Use the status code called back by the handler, or default to 200
+      statusCode = typeof statusCode == "number" ? statusCode : 200;
+      // Use the payload called back by the handler, or default to an empty object
+      payload = typeof payload == "object" ? payload : {};
 
-        // Convert the payload to a string
-        var payloadString = JSON.stringify(payload);
-        // return the response 
-        res.writeHead(statusCode);
-        res.end(payloadString);
-
+      // Convert the payload to a string
+      var payloadString = JSON.stringify(payload);
+      // return the response
+      res.setHeader('Content-Type','application/json');
+      res.writeHead(statusCode);
+      res.end(payloadString);
+      console.log("Returning this response: ", statusCode, payloadString);
     });
-
-});
+  });
 });
 
 server.listen(5000, () => {
@@ -56,15 +59,15 @@ var handlers = {};
 
 // sample handler
 handlers.sample = function (data, callback) {
-    // callback an http status code, and a payload object
-    callback(406,{
-        'name':'sample handler'
-    })
+  // callback an http status code, and a payload object
+  callback(200, {
+    name: "sample handler",
+  });
 };
 
 // not found handler
 handlers.notFound = function (data, callback) {
-    callback(404)
+  callback(404);
 };
 
 // Defining a request router
