@@ -1,11 +1,13 @@
 var environments = {};
 environments.staging = {
-  port: 5000,
+  httpPort: 5000,
+  httpsPort: 5001,
   envName: "staging",
 };
 
 environments.production = {
-  port: 6000,
+  httpPort: 6000,
+  httpsPort: 6001,
   envName: "production",
 };
 
@@ -17,3 +19,5 @@ var environmentToExport =
   typeof environments[currentEnvironment] == "object"
     ? environments[currentEnvironment]
     : environments.staging;
+
+module.exports = environmentToExport;

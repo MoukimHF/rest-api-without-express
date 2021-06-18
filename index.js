@@ -1,7 +1,35 @@
 const http = require("http");
+const https = require("https");
+const fs = require("fs");
 const url = require("url");
 const StringDecoder = require("string_decoder").StringDecoder;
-const server = http.createServer((req, res) => {
+const config = require("./config");
+const httpsServerOptions = {
+    key : fs.readFileSync('./https/key.pem'),
+    cert : fs.readFileSync('./https/cert.pem')
+};
+//instantiating the HTTP server
+const httpServer = http.createServer((req, res) => {
+    unifiedServer(req,res)
+});
+//instantiating the HTTPS server
+const httpsServer = https.createServer(httpsServerOptions,(req, res) => {
+    unifiedServer(req,res)
+});
+//start the HTTP server
+httpServer.listen(config.httpPort, () => {
+  console.log(
+    "Server is on " + config.envName + " listening on port " + config.httpPort
+  );
+});
+
+httpsServer.listen(config.httpsPort, () => {
+    console.log(
+      "Server is on " + config.envName + " listening on port " + config.httpsPort
+    );
+  });
+
+var unifiedServer = function (req, res) {
   const parsedUrl = url.parse(req.url, true);
   const path = parsedUrl.pathname;
   const trimmedPath = path.replace(/^\/+|\/+$/g, "");
@@ -41,18 +69,13 @@ const server = http.createServer((req, res) => {
       // Convert the payload to a string
       var payloadString = JSON.stringify(payload);
       // return the response
-      res.setHeader('Content-Type','application/json');
+      res.setHeader("Content-Type", "application/json");
       res.writeHead(statusCode);
       res.end(payloadString);
       console.log("Returning this response: ", statusCode, payloadString);
     });
   });
-});
-
-server.listen(5000, () => {
-  console.log("Server is listening on port 5000");
-  console.log("http://localhost:5000");
-});
+};
 
 // defining the handlers
 var handlers = {};
@@ -74,3 +97,5 @@ handlers.notFound = function (data, callback) {
 var router = {
   sample: handlers.sample,
 };
+
+// all the server logic for both the http and https server
